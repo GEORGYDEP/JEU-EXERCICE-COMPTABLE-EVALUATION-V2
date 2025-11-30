@@ -5,37 +5,527 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jeu Comptable POPSY</title>
     
-    <!-- 1. CHARGEMENT DES LIBRAIRIES EXTERNES (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e3a8a',
+                        secondary: '#f59e0b',
+                    }
+                }
+            }
+        }
+    </script>
     
-    <!-- React et ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     
-    <!-- Babel pour traduire le JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide-react@0.292.0/dist/lucide-react.min.js"></script>
 
-    <!-- 2. LIEN VERS LE CSS (Chemin relatif strict) -->
-    <link rel="stylesheet" href="./style.css" />
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
-  }
-}
-</script>
+    <style>
+      body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f8fafc; color: #1e293b; }
+      .animate-in { animation: fadeIn 0.4s ease-out forwards; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      @media print {
+        .print-hidden { display: none !important; }
+        .print-block { display: block !important; }
+      }
+    </style>
 </head>
-<body class="bg-gray-50 text-slate-800">
-    <div id="root"></div>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+    <div id="root" class="flex-grow flex flex-col">
+        <div class="flex items-center justify-center h-screen">
+            <div class="text-xl font-semibold text-slate-500">Chargement de l'application...</div>
+        </div>
+    </div>
 
-    <!-- 3. LIEN VERS LE SCRIPT (Chemin relatif strict) -->
-    <!-- type="text/babel" est nécessaire pour que le code React fonctionne -->
-    <script type="text/babel" src="./script.js"></script>
+    <script type="text/babel">
+        // --- A. ICONES SVG (Intégrées directement) ---
+        const Icon = ({ path, className, size = 20 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{display:'inline-block', verticalAlign:'text-bottom'}}>
+                {path}
+            </svg>
+        );
+
+        const Icons = {
+            BookOpen: (p) => <Icon {...p} path={<><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>} />,
+            ChevronRight: (p) => <Icon {...p} path={<path d="m9 18 6-6-6-6"/>} />,
+            ChevronLeft: (p) => <Icon {...p} path={<path d="m15 18-6-6 6-6"/>} />,
+            Eye: (p) => <Icon {...p} path={<><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>} />,
+            Printer: (p) => <Icon {...p} path={<><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></>} />,
+            RotateCcw: (p) => <Icon {...p} path={<><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></>} />,
+            Trophy: (p) => <Icon {...p} path={<><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></>} />,
+            FileText: (p) => <Icon {...p} path={<><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></>} />,
+            List: (p) => <Icon {...p} path={<><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></>} />,
+            Grid: (p) => <Icon {...p} path={<><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></>} />,
+            X: (p) => <Icon {...p} path={<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>} />,
+            Plus: (p) => <Icon {...p} path={<><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>} />,
+            Trash2: (p) => <Icon {...p} path={<><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></>} />,
+            CheckCircle: (p) => <Icon {...p} path={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />
+        };
+
+        const { useState, useEffect } = React;
+
+        // --- B. DONNEES & CONSTANTES ---
+        const JournalType = { ACHAT: 'ACHAT', VENTE: 'VENTE', CAISSE: 'CAISSE', FINANCIER: 'FINANCIER', OD: 'OD' };
+
+        const PLAN_COMPTABLE = [
+            { account: "1000", label: "Capital souscrit" }, { account: "1010", label: "Capital non appelé (-)" }, { account: "1020", label: "Capital amorti" }, 
+            { account: "2400", label: "Mobilier et matériel de bureau" }, { account: "2410", label: "Matériel roulant" }, 
+            { account: "4000", label: "Clients" }, { account: "4050", label: "Créances pour emballages à rendre" }, 
+            { account: "4110", label: "T.V.A. à récupérer sur achat" }, { account: "4111", label: "T.V.A. déductible intracommunautaire" }, 
+            { account: "4114", label: "T.V.A. à récupérer pour régularisation" }, { account: "4115", label: "T.V.A. déductible import" }, 
+            { account: "4400", label: "Fournisseurs" }, { account: "4440", label: "Factures à recevoir" }, { account: "4450", label: "Dettes pour emballages consignés" }, 
+            { account: "4510", label: "T.V.A. à payer s/ ventes" }, { account: "4511", label: "T.V.A. à payer intracommunautaire" }, 
+            { account: "4512", label: "T.V.A. à payer import" }, { account: "4513", label: "T.V.A. due (cocontractant)" }, 
+            { account: "4514", label: "T.V.A. due pour régularisations" }, 
+            { account: "5500", label: "Banques - compte courant" }, { account: "5501", label: "Banques - chèques émis" }, 
+            { account: "5700", label: "Caisses - espèces" }, 
+            { account: "6040", label: "Achats de marchandises" }, { account: "6080", label: "Remises, ristournes et rabais obtenus" }, 
+            { account: "6101", label: "Charges locatives constructions" }, { account: "6106", label: "Entretien et réparations" }, 
+            { account: "6108", label: "Entretien matériel roulant" }, { account: "6117", label: "Consommation électricité" }, 
+            { account: "6168", label: "Frais de réception" }, { account: "6530", label: "Charges d'escompte de créances" }, 
+            { account: "7000", label: "Ventes de marchandises" }, { account: "7070", label: "Prestations de services" }, 
+            { account: "7080", label: "Remises, ristournes et rabais accordés" }, { account: "7560", label: "Escomptes obtenus des fournisseurs" }
+        ];
+
+        const CODES_POPSY = {
+            achats: [ { code: "21M", tva: "21%", label: "Marchandises" }, { code: "21S", tva: "21%", label: "Services" }, { code: "21V", tva: "21%", label: "Investissements" }, { code: "21ND", tva: "21%", label: "TVA 50% non déductible" } ],
+            ventes: [ { code: "21", tva: "21%", label: "TVA 21%" }, { code: "03", tva: "21%", label: "TVA 21% (Popsy)" }, { code: "I0", tva: "0%", label: "Intracommunautaire" }, { code: "X0", tva: "0%", label: "Export" } ]
+        };
+
+        const DECLARATION_TVA = {
+            cadreII: [{ code: "01", label: "6%" }, { code: "02", label: "12%" }, { code: "03", label: "21%" }, { code: "45", label: "COCONTRACTANT" }, { code: "46", label: "INTRACOMMUNAUTAIRE" }, { code: "47", label: "EXPORTATION" }],
+            cadreIII: [{ code: "81", label: "Marchandises" }, { code: "82", label: "SBD" }, { code: "83", label: "Investissements" }, { code: "86", label: "Achats IC" }, { code: "87", label: "Achats Cocontractant" }],
+            cadreIV: [{ code: "54", label: "TVA s/ventes" }, { code: "55", label: "TVA IC" }, { code: "56", label: "TVA Cocontractant" }, { code: "57", label: "TVA Import" }],
+            cadreV: [{ code: "59", label: "TVA déductible" }, { code: "64", label: "TVA s/NC s/ventes" }],
+            cadreVI: [{ code: "71", label: "TVA à payer" }, { code: "72", label: "TVA à récupérer" }]
+        };
+
+        const RAW_LEVELS = [
+            { id: 1, title: "Exercice de réouverture", description: "Écriture d'ouverture au 1er Janvier.", documents: [{ type: 'NOTE', title: "Situation au 01/01", content: { text: "Au 1er janvier, la société possède 25.000 Eur en banque et 2.000 Eur en caisse.\nCapital : 27.000 Eur." } }], requiredJournals: [{ type: JournalType.OD, defaultDate: "01/01/N", solution: [{ accountNumber: '5500', debit: '25.000', credit: '' }, { accountNumber: '5700', debit: '2.000', credit: '' }, { accountNumber: '1000', debit: '', credit: '27.000' }] }] },
+            { id: 2, title: "Achat Marchandises (Liquide)", description: "Achat marchandises paiement liquide.", documents: [{ type: 'INVOICE', title: "Facture 101", content: { sender: { name: "BRICO WORLD", vat: "BE0123" }, receiver: { name: "OUTISUD" }, details: { number: "101", date: "02/01/N" }, lines: [{ desc: "Marchandises A", total: "2250" }], totals: { toPay: "2722,50", totalVat: "472,50", totalExcl: "2250", bases: [{rate:'21%', base:'2250', tax:'472,50'}] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "02/01/N", solution: [{ accountNumber: '6040', debit: '2250', declTva:'81', codePopsy:'21M' }, { accountNumber: '4110', debit: '472,50', declTva:'59' }, { accountNumber: '4400', credit: '2722,50' }] }, { type: JournalType.CAISSE, defaultDate: "02/01/N", solution: [{ accountNumber: '4400', debit: '2722,50' }, { accountNumber: '5700', credit: '2722,50' }] }] },
+            { id: 3, title: "Electricité (Chèque)", description: "Facture électricité payée par chèque.", documents: [{ type: 'INVOICE', title: "Facture 204", content: { sender: { name: "ENERGY CORP" }, receiver: { name: "OUTISUD" }, details: { number: "204", date: "03/01/N" }, lines: [{ desc: "Elec", total: "4500" }], totals: { toPay: "5445", totalVat: "945", totalExcl: "4500", bases: [{rate:'21%', base:'4500', tax:'945'}] } } }, { type: 'BANK_EXTRACT', title: "Extrait 4", content: { transactions: [{ date: "05/01", desc: "Chèque émis", amount: "-5445" }] } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "03/01/N", solution: [{ accountNumber: '6117', debit: '4500', declTva:'82', codePopsy:'21S' }, { accountNumber: '4110', debit: '945', declTva:'59' }, { accountNumber: '4400', credit: '5445' }] }, { type: JournalType.OD, defaultDate: "03/01/N", solution: [{ accountNumber: '4400', debit: '5445' }, { accountNumber: '5501', credit: '5445' }] }, { type: JournalType.FINANCIER, defaultDate: "05/01/N", solution: [{ accountNumber: '5501', debit: '5445' }, { accountNumber: '5500', credit: '5445' }] }] },
+            { id: 4, title: "Achat Mobilier", description: "Virement bancaire.", documents: [{ type: 'INVOICE', title: "Facture 890", content: { sender: { name: "OFFICE DESIGN" }, receiver: { name: "OUTISUD" }, details: { number: "890", date: "04/01/N" }, lines: [{ desc: "Bureau", total: "6000" }], totals: { toPay: "7260", totalVat: "1260", totalExcl: "6000", bases: [{rate:'21%', base:'6000', tax:'1260'}] } } }, { type: 'BANK_EXTRACT', title: "Extrait 5", content: { transactions: [{ date: "06/01", desc: "Virement", amount: "-7260" }] } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "04/01/N", solution: [{ accountNumber: '2400', debit: '6000', declTva:'83', codePopsy:'21V' }, { accountNumber: '4110', debit: '1260', declTva:'59' }, { accountNumber: '4400', credit: '7260' }] }, { type: JournalType.OD, defaultDate: "04/01/N", solution: [{ accountNumber: '4400', debit: '7260' }, { accountNumber: '5501', credit: '7260' }] }, { type: JournalType.FINANCIER, defaultDate: "06/01/N", solution: [{ accountNumber: '5501', debit: '7260' }, { accountNumber: '5500', credit: '7260' }] }] },
+            { id: 5, title: "Vente Marchandises", description: "Vente client belge.", documents: [{ type: 'INVOICE', title: "Facture 10", content: { sender: { name: "OUTISUD" }, receiver: { name: "CLIENT BELGE" }, details: { number: "10", date: "05/01/N" }, lines: [{ desc: "Produit fini", total: "8000" }], totals: { toPay: "9680", totalVat: "1680", totalExcl: "8000", bases: [{rate:'21%', base:'8000', tax:'1680'}] } } }, { type: 'BANK_EXTRACT', title: "Extrait 6", content: { transactions: [{ date: "10/01", desc: "Virement Client", amount: "9680" }] } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "05/01/N", solution: [{ accountNumber: '7000', credit: '8000', declTva:'03', codePopsy:'21' }, { accountNumber: '4510', credit: '1680', declTva:'54' }, { accountNumber: '4000', debit: '9680' }] }, { type: JournalType.FINANCIER, defaultDate: "10/01/N", solution: [{ accountNumber: '5500', debit: '9680' }, { accountNumber: '4000', credit: '9680' }] }] },
+            { id: 6, title: "Prestation de Service", description: "Vente service.", documents: [{ type: 'INVOICE', title: "Facture 11", content: { sender: { name: "OUTISUD" }, receiver: { name: "CONSULTING" }, details: { number: "11", date: "06/01/N" }, lines: [{ desc: "Service", total: "3000" }], totals: { toPay: "3630", totalVat: "630", totalExcl: "3000", bases: [{rate:'21%', base:'3000', tax:'630'}] } } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "06/01/N", solution: [{ accountNumber: '7070', credit: '3000', declTva:'03', codePopsy:'21' }, { accountNumber: '4510', credit: '630', declTva:'54' }, { accountNumber: '4000', debit: '3630' }] }] },
+            { id: 7, title: "Achat Intracommunautaire", description: "Acquisition France.", documents: [{ type: 'INVOICE', title: "Fac FR-55", content: { sender: { name: "RENAULT FR" }, receiver: { name: "OUTISUD" }, details: { number: "FR-55", date: "07/01/N" }, lines: [{ desc: "Marchandises", total: "15000" }], totals: { toPay: "15000", totalVat: "0", totalExcl: "15000", bases: [] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "07/01/N", solution: [{ accountNumber: '6040', debit: '15000', declTva:'81', codePopsy:'21IM' }, { accountNumber: '4110', debit: '3150', declTva:'59' }, { accountNumber: '4511', credit: '3150', declTva:'55' }, { accountNumber: '4400', credit: '15000' }] }] },
+            { id: 8, title: "Vente Intracommunautaire", description: "Livraison France.", documents: [{ type: 'INVOICE', title: "Fac 12", content: { sender: { name: "OUTISUD" }, receiver: { name: "SPORT FR" }, details: { number: "12", date: "07/01/N" }, lines: [{ desc: "Produit B", total: "8500" }], totals: { toPay: "8500", totalVat: "0", totalExcl: "8500", bases: [] } } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "07/01/N", solution: [{ accountNumber: '7000', credit: '8500', declTva:'46', codePopsy:'I0' }, { accountNumber: '4000', debit: '8500' }] }] },
+            { id: 9, title: "Importation (Suisse)", description: "Achat hors UE.", documents: [{ type: 'INVOICE', title: "Fac CH-99", content: { sender: { name: "SWISS WATCH" }, receiver: { name: "OUTISUD" }, details: { number: "CH-99", date: "08/01/N" }, lines: [{ desc: "Produit B", total: "10000" }], totals: { toPay: "10000", totalVat: "0", totalExcl: "10000", bases: [] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "08/01/N", solution: [{ accountNumber: '6040', debit: '10000', declTva:'81', codePopsy:'21XM' }, { accountNumber: '4110', debit: '2100', declTva:'59' }, { accountNumber: '4512', credit: '2100', declTva:'57' }, { accountNumber: '4400', credit: '10000' }] }] },
+            { id: 10, title: "Exportation", description: "Vente hors UE.", documents: [{ type: 'INVOICE', title: "Fac 13", content: { sender: { name: "OUTISUD" }, receiver: { name: "USA CLIENT" }, details: { number: "13", date: "09/01/N" }, lines: [{ desc: "Produit B", total: "12000" }], totals: { toPay: "12000", totalVat: "0", totalExcl: "12000", bases: [] } } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "09/01/N", solution: [{ accountNumber: '7000', credit: '12000', declTva:'47', codePopsy:'X0' }, { accountNumber: '4000', debit: '12000' }] }] },
+            { id: 11, title: "Achat Cocontractant", description: "Nettoyage locaux.", documents: [{ type: 'INVOICE', title: "Fac 500", content: { sender: { name: "CLEAN PRO" }, receiver: { name: "OUTISUD" }, details: { number: "500", date: "10/01/N" }, lines: [{ desc: "Nettoyage", total: "1000" }], totals: { toPay: "1000", totalVat: "0", totalExcl: "1000", bases: [] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "10/01/N", solution: [{ accountNumber: '6106', debit: '1000', declTva:'82', codePopsy:'21CS' }, { accountNumber: '4110', debit: '210', declTva:'59' }, { accountNumber: '4513', credit: '210', declTva:'56' }, { accountNumber: '4400', credit: '1000' }] }] },
+            { id: 12, title: "Vente Cocontractant", description: "Travaux fournis.", documents: [{ type: 'INVOICE', title: "Fac 14", content: { sender: { name: "OUTISUD" }, receiver: { name: "BATIMENT SA" }, details: { number: "14", date: "11/01/N" }, lines: [{ desc: "Travaux", total: "3000" }], totals: { toPay: "3000", totalVat: "0", totalExcl: "3000", bases: [] } } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "11/01/N", solution: [{ accountNumber: '7070', credit: '3000', declTva:'45', codePopsy:'C0' }, { accountNumber: '4000', debit: '3000' }] }] },
+            { id: 13, title: "NC sur Achat", description: "Retour de marchandises.", documents: [{ type: 'INVOICE', title: "NC 10", content: { sender: { name: "BRICO WORLD" }, receiver: { name: "OUTISUD" }, details: { number: "NC 10", date: "12/01/N" }, lines: [{ desc: "Retour", total: "800" }], totals: { toPay: "968", totalVat: "168", totalExcl: "800", bases: [{rate:'21%', base:'800', tax:'168'}] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "12/01/N", solution: [{ accountNumber: '6040', credit: '800', declTva:'81(-)', codePopsy:'21M' }, { accountNumber: '4514', credit: '168', declTva:'63' }, { accountNumber: '4400', debit: '968' }] }] },
+            { id: 14, title: "NC sur Vente", description: "Retour de marchandises client.", documents: [{ type: 'INVOICE', title: "NC 2", content: { sender: { name: "OUTISUD" }, receiver: { name: "CLIENT BELGE" }, details: { number: "NC 2", date: "13/01/N" }, lines: [{ desc: "Retour", total: "1000" }], totals: { toPay: "1210", totalVat: "210", totalExcl: "1000", bases: [{rate:'21%', base:'1000', tax:'210'}] } } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "13/01/N", solution: [{ accountNumber: '7000', debit: '1000', declTva:'49', codePopsy:'21' }, { accountNumber: '4114', debit: '210', declTva:'64' }, { accountNumber: '4000', credit: '1210' }] }] },
+            { id: 15, title: "NC Achat (Remise)", description: "Remise exceptionnelle.", documents: [{ type: 'INVOICE', title: "NC 11", content: { sender: { name: "OFFICE DESIGN" }, receiver: { name: "OUTISUD" }, details: { number: "NC 11", date: "14/01/N" }, lines: [{ desc: "Remise", total: "200" }], totals: { toPay: "242", totalVat: "42", totalExcl: "200", bases: [{rate:'21%', base:'200', tax:'42'}] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "14/01/N", solution: [{ accountNumber: '6080', credit: '200', declTva:'81(-)', codePopsy:'21M' }, { accountNumber: '4514', credit: '42', declTva:'63' }, { accountNumber: '4400', debit: '242' }] }] },
+            { id: 16, title: "NC Vente (Remise)", description: "Remise accordée.", documents: [{ type: 'INVOICE', title: "NC 3", content: { sender: { name: "OUTISUD" }, receiver: { name: "CLIENT BELGE" }, details: { number: "NC 3", date: "15/01/N" }, lines: [{ desc: "Remise", total: "500" }], totals: { toPay: "605", totalVat: "105", totalExcl: "500", bases: [{rate:'21%', base:'500', tax:'105'}] } } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "15/01/N", solution: [{ accountNumber: '7080', debit: '500', declTva:'49', codePopsy:'21' }, { accountNumber: '4114', debit: '105', declTva:'64' }, { accountNumber: '4000', credit: '605' }] }] },
+            { id: 17, title: "NC Achat (Emballage)", description: "Retour consignes.", documents: [{ type: 'INVOICE', title: "NC 12", content: { sender: { name: "BRICO WORLD" }, receiver: { name: "OUTISUD" }, details: { number: "NC 12", date: "16/01/N" }, lines: [{ desc: "Consignes", total: "120" }], totals: { toPay: "120", totalVat: "0", totalExcl: "120", bases: [] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "16/01/N", solution: [{ accountNumber: '4050', credit: '120', declTva:'EX', codePopsy:'' }, { accountNumber: '4400', debit: '120' }] }] },
+            { id: 18, title: "NC Vente (Emballage)", description: "Retour consignes.", documents: [{ type: 'INVOICE', title: "NC 4", content: { sender: { name: "OUTISUD" }, receiver: { name: "CLIENT BELGE" }, details: { number: "NC 4", date: "17/01/N" }, lines: [{ desc: "Consignes", total: "150" }], totals: { toPay: "150", totalVat: "0", totalExcl: "150", bases: [] } } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "17/01/N", solution: [{ accountNumber: '4450', debit: '150', declTva:'EX', codePopsy:'' }, { accountNumber: '4000', credit: '150' }] }] },
+            { id: 19, title: "Achat + Escompte", description: "Escompte 2% (conditionnel).", documents: [{ type: 'INVOICE', title: "Fac 600", content: { sender: { name: "TECH STORE" }, receiver: { name: "OUTISUD" }, details: { number: "600", date: "18/01/N" }, lines: [{ desc: "Matériel", total: "2000" }], totals: { toPay: "2411,60", totalVat: "411,60", totalExcl: "2000", bases:[{rate:'21%', base:'1960', tax:'411,60'}] } } }, { type: 'NOTE', content: { text: "Paiement carte." } }, { type: 'BANK_EXTRACT', title: "Extrait 7", content: { transactions: [{ date: "18/01", desc: "Carte", amount: "-2371,60" }] } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "18/01/N", solution: [{ accountNumber: '6040', debit: '2000', declTva:'81', codePopsy:'21M' }, { accountNumber: '4110', debit: '411,60', declTva:'59' }, { accountNumber: '4400', credit: '2411,60' }] }, { type: JournalType.OD, defaultDate: "18/01/N", solution: [{ accountNumber: '4400', debit: '2411,60' }, { accountNumber: '7560', credit: '40' }, { accountNumber: '5501', credit: '2371,60' }] }, { type: JournalType.FINANCIER, defaultDate: "18/01/N", solution: [{ accountNumber: '5501', debit: '2371,60' }, { accountNumber: '5500', credit: '2371,60' }] }] },
+            { id: 20, title: "Vente + Escompte", description: "Escompte 2% (conditionnel).", documents: [{ type: 'INVOICE', title: "Fac 15", content: { sender: { name: "OUTISUD" }, receiver: { name: "CLIENT PRO" }, details: { number: "15", date: "19/01/N" }, lines: [{ desc: "Marchandises", total: "3000" }], totals: { toPay: "3617,40", totalVat: "617,40", totalExcl: "3000", bases:[{rate:'21%', base:'2940', tax:'617,40'}] } } }, { type: 'BANK_EXTRACT', title: "Extrait 8", content: { transactions: [{ date: "19/01", desc: "Virement", amount: "3557,40" }] } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "19/01/N", solution: [{ accountNumber: '7000', credit: '3000', declTva:'03', codePopsy:'21' }, { accountNumber: '4510', credit: '617,40', declTva:'54' }, { accountNumber: '4000', debit: '3617,40' }] }, { type: JournalType.OD, defaultDate: "19/01/N", solution: [{ accountNumber: '4000', credit: '3617,40' }, { accountNumber: '6530', debit: '60' }, { accountNumber: '5500', debit: '3557,40' }] }] },
+            { id: 21, title: "Achat Escompte Ferme", description: "Escompte déduit facture.", documents: [{ type: 'INVOICE', title: "Fac 601", content: { sender: { name: "TECH STORE" }, receiver: { name: "OUTISUD" }, details: { number: "601", date: "20/01/N" }, lines: [{ desc: "Matériel", total: "3000" }, { desc: "Escompte", total: "-100" }], totals: { toPay: "3509", totalVat: "609", totalExcl: "2900", bases: [{rate:'21%', base:'2900', tax:'609'}] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "20/01/N", solution: [{ accountNumber: '6040', debit: '3000', declTva:'81', codePopsy:'21M' }, { accountNumber: '7560', credit: '100', declTva:'81(-)', codePopsy:'21S' }, { accountNumber: '4110', debit: '609', declTva:'59' }, { accountNumber: '4400', credit: '3509' }] }] },
+            { id: 22, title: "Vente Escompte Ferme", description: "Escompte déduit facture.", documents: [{ type: 'INVOICE', title: "Fac 16", content: { sender: { name: "OUTISUD" }, receiver: { name: "CLIENT PRO" }, details: { number: "16", date: "21/01/N" }, lines: [{ desc: "Marchandises", total: "5000" }, { desc: "Escompte", total: "-200" }], totals: { toPay: "5808", totalVat: "1008", totalExcl: "4800", bases: [{rate:'21%', base:'4800', tax:'1008'}] } } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "21/01/N", solution: [{ accountNumber: '7000', credit: '5000', declTva:'03', codePopsy:'21' }, { accountNumber: '6530', debit: '200', declTva:'03(-)', codePopsy:'21' }, { accountNumber: '4510', credit: '1008', declTva:'54' }, { accountNumber: '4000', debit: '5808' }] }] },
+            { id: 23, title: "Achat + Emballages", description: "Consignes facturées.", documents: [{ type: 'INVOICE', title: "Fac 700", content: { sender: { name: "LOGISTIX" }, receiver: { name: "OUTISUD" }, details: { number: "700", date: "22/01/N" }, lines: [{ desc: "Marchandises", total: "3000" }, { desc: "Transport", total: "200" }, { desc: "Consignes", total: "100" }], totals: { toPay: "3972", totalVat: "672", totalExcl: "3300", bases: [{rate:'21%', base:'3200', tax:'672'}] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "22/01/N", solution: [{ accountNumber: '6040', debit: '3200', declTva:'81', codePopsy:'21M' }, { accountNumber: '4050', debit: '100', declTva:'EX', codePopsy:'' }, { accountNumber: '4110', debit: '672', declTva:'59' }, { accountNumber: '4400', credit: '3972' }] }] },
+            { id: 24, title: "Vente + Emballages", description: "Consignes facturées.", documents: [{ type: 'INVOICE', title: "Fac 17", content: { sender: { name: "OUTISUD" }, receiver: { name: "CLIENT LOCAL" }, details: { number: "17", date: "23/01/N" }, lines: [{ desc: "Marchandises", total: "6000" }, { desc: "Transport", total: "300" }, { desc: "Consignes", total: "150" }], totals: { toPay: "7773", totalVat: "1323", totalExcl: "6450", bases: [{rate:'21%', base:'6300', tax:'1323'}] } } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "23/01/N", solution: [{ accountNumber: '7000', credit: '6300', declTva:'03', codePopsy:'21' }, { accountNumber: '4510', credit: '1323', declTva:'54' }, { accountNumber: '4450', credit: '150', declTva:'EX', codePopsy:'' }, { accountNumber: '4000', debit: '7773' }] }] },
+            { id: 26, title: "Achat Emballages Vendus", description: "Emballages perdus.", documents: [{ type: 'INVOICE', title: "Fac 702", content: { sender: { name: "PACK CO" }, receiver: { name: "OUTISUD" }, details: { number: "702", date: "24/01/N" }, lines: [{ desc: "Marchandises", total: "1100" }, { desc: "Emballages", total: "50" }], totals: { toPay: "1391,50", totalVat: "241,50", totalExcl: "1150", bases: [{rate:'21%', base:'1150', tax:'241,50'}] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "24/01/N", solution: [{ accountNumber: '6040', debit: '1150', declTva:'81', codePopsy:'21M' }, { accountNumber: '4110', debit: '241,50', declTva:'59' }, { accountNumber: '4400', credit: '1391,50' }] }] },
+            { id: 27, title: "Vente Emballages Vendus", description: "Emballages facturés.", documents: [{ type: 'INVOICE', title: "Fac 18", content: { sender: { name: "OUTISUD" }, receiver: { name: "PETIT MAGASIN" }, details: { number: "18", date: "25/01/N" }, lines: [{ desc: "Marchandises", total: "850" }, { desc: "Emballages", total: "50" }], totals: { toPay: "1089", totalVat: "189", totalExcl: "900", bases: [{rate:'21%', base:'900', tax:'189'}] } } }], requiredJournals: [{ type: JournalType.VENTE, defaultDate: "25/01/N", solution: [{ accountNumber: '7000', credit: '900', declTva:'03', codePopsy:'21' }, { accountNumber: '4510', credit: '189', declTva:'54' }, { accountNumber: '4000', debit: '1089' }] }] },
+            { id: 28, title: "Achat Voiture", description: "TVA 50% Déductible.", documents: [{ type: 'INVOICE', title: "Fac 999", content: { sender: { name: "GARAGE BMW" }, receiver: { name: "OUTISUD" }, details: { number: "999", date: "26/01/N" }, lines: [{ desc: "BMW Série 1", total: "30000" }], totals: { toPay: "36300", totalVat: "6300", totalExcl: "30000", bases: [{rate:'21%', base:'30000', tax:'6300'}] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "26/01/N", solution: [{ accountNumber: '2410', debit: '33150', declTva:'83', codePopsy:'21ND' }, { accountNumber: '4110', debit: '3150', declTva:'59' }, { accountNumber: '4400', credit: '36300' }] }] },
+            { id: 29, title: "Entretien Voiture", description: "TVA 50% Déductible.", documents: [{ type: 'INVOICE', title: "Fac 1000", content: { sender: { name: "GARAGE BMW" }, receiver: { name: "OUTISUD" }, details: { number: "1000", date: "27/01/N" }, lines: [{ desc: "Entretien", total: "800" }], totals: { toPay: "968", totalVat: "168", totalExcl: "800", bases: [{rate:'21%', base:'800', tax:'168'}] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "27/01/N", solution: [{ accountNumber: '6108', debit: '884', declTva:'82', codePopsy:'21ND' }, { accountNumber: '4110', debit: '84', declTva:'59' }, { accountNumber: '4400', credit: '968' }] }] },
+            { id: 30, title: "Vente Comptoir", description: "Vente au comptoir.", documents: [{ type: 'NOTE', title: "Ticket Caisse", content: { text: "Vente comptoir (21%). Total TVAC: 242 EUR.\nPaiement en liquide." } }], requiredJournals: [ { type: JournalType.VENTE, defaultDate: "28/01/N", solution: [ { accountNumber: '4000', debit: '242', label: 'Client comptoir' }, { accountNumber: '4510', credit: '42', declTva:'54' }, { accountNumber: '7000', credit: '200', declTva:'03', codePopsy:'21' }, ] }, { type: JournalType.FINANCIER, defaultDate: "28/01/N", solution: [ { accountNumber: '5700', debit: '242' }, { accountNumber: '4000', credit: '242' }, ] } ] },
+            { id: 31, title: "Achat Whisky", description: "TVA non déductible.", documents: [{ type: 'INVOICE', title: "Fac 55", content: { sender: { name: "DRINK MARKET" }, receiver: { name: "OUTISUD" }, details: { number: "55", date: "29/01/N" }, lines: [{ desc: "Whisky", total: "200" }], totals: { toPay: "242", totalVat: "42", totalExcl: "200", bases: [{rate:'21%', base:'200', tax:'42'}] } } }], requiredJournals: [{ type: JournalType.ACHAT, defaultDate: "29/01/N", solution: [{ accountNumber: '6168', debit: '242', declTva:'82', codePopsy:'21ND100S' }, { accountNumber: '4400', credit: '242' }] }] },
+            { id: 32, title: "Loyer", description: "Paiement loyer.", documents: [{ type: 'BANK_EXTRACT', title: "Extrait 10", content: { transactions: [{ date: "30/01", desc: "Loyer", amount: "-1000" }] } }], requiredJournals: [{ type: JournalType.FINANCIER, defaultDate: "30/01/N", solution: [{ accountNumber: '6101', debit: '1000' }, { accountNumber: '5500', credit: '1000' }] }] }
+        ];
+
+        // --- C. COMPOSANTS D'INTERFACE ---
+
+        // 1. Modales
+        const Modal = ({ title, onClose, children }) => (
+            <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-in">
+                <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col p-6 overflow-hidden">
+                    <div className="flex justify-between items-center mb-4 pb-2 border-b">
+                        <h2 className="text-xl font-bold">{title}</h2>
+                        <button onClick={onClose}><Icons.X size={24}/></button>
+                    </div>
+                    <div className="overflow-auto flex-grow">{children}</div>
+                </div>
+            </div>
+        );
+
+        const PlanComptableModal = ({ onClose }) => {
+            const [search, setSearch] = useState('');
+            const filtered = PLAN_COMPTABLE.filter(i => i.account.includes(search) || i.label.toLowerCase().includes(search.toLowerCase()));
+            return (
+                <Modal title="Plan Comptable" onClose={onClose}>
+                    <input autoFocus placeholder="Rechercher..." value={search} onChange={e=>setSearch(e.target.value)} className="w-full border p-2 mb-4 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">{filtered.map(c => <div key={c.account} className="border-b p-1 flex gap-2 hover:bg-gray-50"><span className="font-bold w-12 text-blue-800">{c.account}</span><span>{c.label}</span></div>)}</div>
+                </Modal>
+            );
+        };
+
+        const DeclarationTvaModal = ({ onClose }) => (
+            <Modal title="Déclaration TVA" onClose={onClose}>
+                <div className="grid md:grid-cols-2 gap-4">
+                    {Object.entries(DECLARATION_TVA).map(([cadre, items]) => (
+                        <div key={cadre} className="border rounded shadow-sm">
+                            <div className="bg-gray-100 font-bold p-2 uppercase border-b">{cadre}</div>
+                            {items.map(i => <div key={i.code} className="flex border-t"><span className="w-16 bg-gray-50 border-r p-2 font-bold text-center flex items-center justify-center">{i.code}</span><span className="p-2 flex-1">{i.label}</span></div>)}
+                        </div>
+                    ))}
+                </div>
+            </Modal>
+        );
+
+        const CodesPopsyModal = ({ onClose }) => (
+            <Modal title="Codes Popsy" onClose={onClose}>
+                <div className="grid md:grid-cols-2 gap-4">
+                    <div><h3 className="font-bold bg-yellow-200 p-2 mb-2 rounded">Achats</h3>{CODES_POPSY.achats.map(c => <div key={c.code} className="flex text-sm border-b hover:bg-gray-50"><span className="w-16 font-bold bg-yellow-100 p-1 flex items-center justify-center border-r">{c.code}</span><span className="p-1 flex-1">{c.label}</span></div>)}</div>
+                    <div><h3 className="font-bold bg-orange-200 p-2 mb-2 rounded">Ventes</h3>{CODES_POPSY.ventes.map(c => <div key={c.code} className="flex text-sm border-b hover:bg-gray-50"><span className="w-16 font-bold bg-orange-100 p-1 flex items-center justify-center border-r">{c.code}</span><span className="p-1 flex-1">{c.label}</span></div>)}</div>
+                </div>
+            </Modal>
+        );
+
+        // 2. Visualiseurs
+        const InvoiceViewer = ({ content }) => {
+            const senderName = content.sender?.name || "Inconnu";
+            const receiverName = content.receiver?.name || "Client";
+            return (
+                <div className="bg-white border shadow p-6 text-sm mb-4 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 bg-gray-200 text-xs px-2 py-1 text-gray-500">FACTURE</div>
+                    <div className="flex justify-between mb-6">
+                        <div className="w-1/2">
+                            <h3 className="font-bold text-lg">{senderName}</h3>
+                            <p className="text-xs">{content.sender?.vat}</p>
+                        </div>
+                        <div className="border-2 border-gray-300 p-3 w-1/3 rounded bg-gray-50">
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">Destinataire</p>
+                            <h3 className="font-bold">{receiverName}</h3>
+                        </div>
+                    </div>
+                    <div className="mb-4 font-bold border-b pb-1 flex justify-between">
+                        <span>Facture {content.details?.number}</span>
+                        <span>{content.details?.date}</span>
+                    </div>
+                    <table className="w-full mb-4">
+                        <thead><tr className="border-b text-gray-500"><th className="text-left font-normal">Libellé</th><th className="text-right font-normal">Montant</th></tr></thead>
+                        <tbody>
+                            {content.lines?.map((l, i) => <tr key={i}><td className="py-1">{l.desc}</td><td className="text-right font-mono">{l.total}</td></tr>)}
+                        </tbody>
+                    </table>
+                    <div className="flex justify-end">
+                        <div className="w-2/3 border-t pt-2">
+                            {content.totals?.bases && content.totals.bases.map((b,i)=> (
+                                <div key={i} className="flex justify-between text-xs text-gray-500">
+                                    <span>Base {b.rate}: {b.base}</span>
+                                    <span>TVA: {b.tax}</span>
+                                </div>
+                            ))}
+                            <div className="flex justify-between mt-1"><span>Total HT:</span><span>{content.totals?.totalExcl}</span></div>
+                            <div className="flex justify-between"><span>Total TVA:</span><span>{content.totals?.totalVat}</span></div>
+                            <div className="text-right font-bold text-lg bg-yellow-50 p-2 border-t-2 border-slate-800 mt-2">A Payer: {content.totals?.toPay} €</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const BankExtractViewer = ({ content }) => (
+            <div className="bg-blue-50 border border-blue-200 p-4 mb-4 text-sm font-mono shadow-sm">
+                <div className="font-bold text-blue-900 border-b border-blue-300 mb-2 flex justify-between">
+                    <span>{content.title}</span>
+                </div>
+                {content.transactions.map((t, i) => (
+                    <div key={i} className="flex justify-between bg-white p-2 mb-1 border rounded">
+                        <span>{t.date} - {t.desc}</span>
+                        <span className={String(t.amount).includes('-') ? 'text-red-600' : 'text-green-600 font-bold'}>{t.amount}</span>
+                    </div>
+                ))}
+            </div>
+        );
+
+        const DocumentViewer = ({ doc }) => {
+            if (doc.type === 'INVOICE') return <InvoiceViewer content={doc.content} />;
+            if (doc.type === 'BANK_EXTRACT') return <BankExtractViewer content={doc.content} />;
+            return <div className="bg-yellow-100 border-l-4 border-yellow-400 p-4 text-center italic text-yellow-900 mb-4 rounded shadow-sm">{doc.content.text}</div>;
+        };
+
+        // 3. Journal Interactif
+        const JournalTable = ({ type, defaultDate, rows, setRows, validationState, solutionRows }) => {
+            const [journalDate, setJournalDate] = useState(defaultDate);
+            useEffect(() => setJournalDate(defaultDate), [defaultDate]);
+            useEffect(() => { if (rows.length === 0) setRows([{id:1,accountNumber:''},{id:2,accountNumber:''},{id:3,accountNumber:''}]); }, []);
+
+            const updateRow = (id, field, val) => {
+                if(validationState.isValidated) return;
+                setRows(rows.map(r => r.id === id ? { ...r, [field]: val } : r));
+            };
+            const addRow = () => {
+                if(validationState.isValidated) return;
+                setRows([...rows, {id: Date.now().toString()}]);
+            };
+            const removeRow = (id) => {
+                if(validationState.isValidated) return;
+                setRows(rows.filter(r => r.id !== id));
+            };
+
+            const renderFeedbackRow = (rowIdx) => {
+                if (!validationState.isValidated) return null;
+                const userRow = rows[rowIdx];
+                const solRow = solutionRows[rowIdx];
+                if (!solRow) return null;
+                
+                let score = 0;
+                let max = 2;
+                if(solRow.declTva && solRow.codePopsy) max=4; else if(solRow.declTva) max=3;
+                
+                if(userRow.accountNumber === solRow.accountNumber) score++;
+                if(solRow.declTva && userRow.declTva === solRow.declTva) score++;
+                if(solRow.codePopsy && userRow.codePopsy === solRow.codePopsy) score++;
+                if((solRow.debit && userRow.debit === solRow.debit) || (solRow.credit && userRow.credit === solRow.credit)) score++;
+                
+                return (
+                    <tr className="bg-green-50 border-b-2 border-green-200 text-xs text-green-900 animate-in">
+                        <td colSpan="7" className="p-2">
+                            <div className="flex justify-between items-center font-bold">
+                                <span>Note: {score}/{max} pts</span>
+                                <span className="font-mono">Correction: {solRow.accountNumber} {solRow.declTva && `| TVA:${solRow.declTva}`} {solRow.codePopsy && `| Code:${solRow.codePopsy}`} | M: {solRow.debit || solRow.credit}</span>
+                            </div>
+                        </td>
+                    </tr>
+                );
+            };
+
+            return (
+                <div className="bg-white rounded-lg shadow-lg border overflow-hidden mb-8">
+                    <div className="bg-slate-800 text-white p-3 flex justify-between items-center">
+                        <h3 className="font-bold">{type}</h3>
+                        <div className="flex items-center gap-2 text-sm">
+                            <span>Date:</span>
+                            <input value={journalDate} onChange={e => setJournalDate(e.target.value)} disabled={validationState.isValidated} className="text-black rounded px-1 w-24 text-center" />
+                        </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gray-100 border-b">
+                                <tr>
+                                    <th className="p-2 border-r w-24">Compte</th>
+                                    <th className="p-2 border-r w-16">TVA</th>
+                                    <th className="p-2 border-r w-20">Popsy</th>
+                                    <th className="p-2 border-r min-w-[150px]">Libellé</th>
+                                    <th className="p-2 w-24 bg-yellow-50 text-right">Débit</th>
+                                    <th className="p-2 w-24 bg-blue-50 text-right">Crédit</th>
+                                    <th className="w-8"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {rows.map((row, idx) => (
+                                    <React.Fragment key={row.id}>
+                                        <tr className="border-b hover:bg-gray-50">
+                                            <td className="p-1 border-r"><input value={row.accountNumber || ''} onChange={e => updateRow(row.id, 'accountNumber', e.target.value)} disabled={validationState.isValidated} className="w-full text-center font-bold bg-yellow-100 p-1 rounded" placeholder="ex: 6040"/></td>
+                                            <td className="p-1 border-r"><input value={row.declTva || ''} onChange={e => updateRow(row.id, 'declTva', e.target.value)} disabled={validationState.isValidated} className="w-full text-center bg-yellow-100 p-1 rounded" /></td>
+                                            <td className="p-1 border-r"><input value={row.codePopsy || ''} onChange={e => updateRow(row.id, 'codePopsy', e.target.value)} disabled={validationState.isValidated} className="w-full text-center bg-yellow-100 p-1 rounded" /></td>
+                                            <td className="p-1 border-r"><input value={row.label || ''} onChange={e => updateRow(row.id, 'label', e.target.value)} disabled={validationState.isValidated} className="w-full p-1 rounded" /></td>
+                                            <td className="p-1 border-r bg-yellow-50"><input value={row.debit || ''} onChange={e => updateRow(row.id, 'debit', e.target.value)} disabled={validationState.isValidated} className="w-full text-right font-bold bg-yellow-100 p-1 rounded" /></td>
+                                            <td className="p-1 bg-blue-50"><input value={row.credit || ''} onChange={e => updateRow(row.id, 'credit', e.target.value)} disabled={validationState.isValidated} className="w-full text-right font-bold bg-yellow-100 p-1 rounded" /></td>
+                                            <td className="p-1 text-center"><button onClick={() => removeRow(row.id)} disabled={validationState.isValidated} className="text-red-400 hover:text-red-600"><Icons.Trash2 size={14}/></button></td>
+                                        </tr>
+                                        {renderFeedbackRow(idx)}
+                                    </React.Fragment>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    {!validationState.isValidated && <div className="p-2 bg-gray-50 border-t"><button onClick={addRow} className="text-blue-600 text-xs flex items-center gap-1 hover:text-blue-800"><Icons.Plus size={12} /> Ajouter ligne</button></div>}
+                </div>
+            );
+        };
+
+        const FinalReport = ({ userEmail, scores, onRestart }) => {
+            const totalObtained = Object.values(scores).reduce((sum, s) => sum + s.obtained, 0);
+            const totalPossible = Object.values(scores).reduce((sum, s) => sum + s.possible, 0);
+            const percentage = totalPossible > 0 ? Math.round((totalObtained / totalPossible) * 100) : 0;
+
+            return (
+                <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4 print-block">
+                    <div className="bg-white p-10 rounded-2xl shadow-xl text-center max-w-2xl w-full animate-in">
+                        <div className="inline-flex items-center justify-center w-24 h-24 bg-yellow-100 rounded-full text-yellow-500 mb-6"><Icons.Trophy size={48} /></div>
+                        <h1 className="text-4xl font-bold text-slate-800 mb-2">Félicitations !</h1>
+                        <p className="text-slate-600 text-lg mb-8">Vous avez terminé tous les exercices, <span className="font-bold text-slate-800">{userEmail.split('@')[0]}</span>.</p>
+                        <div className="bg-slate-800 text-white p-6 rounded-lg mb-8">
+                            <div className="text-sm uppercase opacity-70">Score Final</div>
+                            <div className="text-4xl font-bold text-yellow-400">{totalObtained} / {totalPossible}</div>
+                            <div className="text-lg">{percentage}%</div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center print-hidden">
+                            <button onClick={() => window.print()} className="flex items-center justify-center gap-2 px-6 py-4 bg-slate-800 text-white rounded-xl hover:bg-slate-900 transition-all font-semibold shadow-lg"><Icons.Printer size={20} /> Imprimer</button>
+                            <button onClick={onRestart} className="flex items-center justify-center gap-2 px-6 py-4 bg-white border-2 border-slate-200 text-slate-700 rounded-xl hover:border-slate-300 hover:bg-slate-50 transition-all font-semibold"><Icons.RotateCcw size={20} /> Rejouer</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- D. LOGIQUE PRINCIPALE ---
+        const App = () => {
+            const [userEmail, setUserEmail] = useState('');
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [shuffledLevels, setShuffledLevels] = useState([]);
+            const [levelIdx, setLevelIdx] = useState(0);
+            const [allUserAnswers, setAllUserAnswers] = useState({});
+            const [validatedLevels, setValidatedLevels] = useState({});
+            const [scores, setScores] = useState({});
+            const [activeModal, setActiveModal] = useState(null); 
+            const [isCompleted, setIsCompleted] = useState(false);
+
+            const shuffleLevels = () => {
+                const levelOne = RAW_LEVELS.find(l => l.id === 1);
+                const others = RAW_LEVELS.filter(l => l.id !== 1);
+                for (let i = others.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [others[i], others[j]] = [others[j], others[i]];
+                }
+                setShuffledLevels([levelOne, ...others]);
+            };
+
+            useEffect(() => {
+                shuffleLevels();
+            }, []);
+
+            const currentLevel = shuffledLevels[levelIdx];
+            const isLevelValidated = !!validatedLevels[currentLevel?.id];
+            const currentScore = scores[currentLevel?.id];
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if(userEmail.includes('@') && userEmail.length > 5) setIsAuthenticated(true);
+            };
+
+            const updateAnswers = (journalIdx, rows) => {
+                setAllUserAnswers(prev => ({
+                    ...prev,
+                    [currentLevel.id]: { ...(prev[currentLevel.id] || {}), [journalIdx]: rows }
+                }));
+            };
+
+            const handleValidateLevel = () => {
+                let levelObtained = 0;
+                let levelPossible = 0;
+
+                currentLevel.requiredJournals.forEach((journal, jIdx) => {
+                    const userRows = allUserAnswers[currentLevel.id]?.[jIdx] || [];
+                    journal.solution.forEach((solRow, rIdx) => {
+                        const userRow = userRows[rIdx] || {accountNumber:''};
+                        
+                        let score = 0;
+                        let max = 2;
+                        if(solRow.declTva && solRow.codePopsy) max=4; else if(solRow.declTva) max=3;
+                        
+                        if(userRow.accountNumber === solRow.accountNumber) score++;
+                        if(solRow.declTva && userRow.declTva === solRow.declTva) score++;
+                        if(solRow.codePopsy && userRow.codePopsy === solRow.codePopsy) score++;
+                        if((solRow.debit && userRow.debit === solRow.debit) || (solRow.credit && userRow.credit === solRow.credit)) score++;
+                        
+                        levelObtained += score;
+                        levelPossible += max;
+                    });
+                });
+
+                setScores(prev => ({ ...prev, [currentLevel.id]: { obtained: levelObtained, possible: levelPossible } }));
+                setValidatedLevels(prev => ({ ...prev, [currentLevel.id]: true }));
+            };
+
+            const handleRestart = () => {
+                setIsCompleted(false);
+                setLevelIdx(0);
+                setAllUserAnswers({});
+                setValidatedLevels({});
+                setScores({});
+                shuffleLevels();
+                window.scrollTo(0, 0);
+            };
+
+            if (!isAuthenticated) {
+                return (
+                    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+                        <div className="bg-white p-8 rounded-xl max-w-md w-full shadow-2xl animate-in">
+                            <h1 className="text-2xl font-bold mb-4 flex items-center gap-2 text-slate-800"><Icons.BookOpen className="text-yellow-500"/> Compta POPSY</h1>
+                            <p className="text-sm text-gray-600 mb-6">Exercices d'enregistrement comptable (31 Niveaux).</p>
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <input type="email" required placeholder="prénom.nom@istlm.org" value={userEmail} onChange={e => setUserEmail(e.target.value)} className="w-full border p-3 rounded focus:ring-2 focus:ring-yellow-400 outline-none" />
+                                <button type="submit" className="w-full bg-slate-900 text-white p-3 rounded font-bold hover:bg-slate-800 transition-colors">Commencer</button>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (isCompleted) return <FinalReport userEmail={userEmail} scores={scores} onRestart={handleRestart} />;
+            
+            if (!currentLevel) return <div className="text-center p-8">Initialisation du jeu...</div>;
+
+            return (
+                <div className="min-h-screen flex flex-col pb-20 print:pb-0">
+                    <header className="bg-slate-900 text-white p-4 sticky top-0 z-40 print:hidden shadow-lg">
+                        <div className="container mx-auto flex justify-between items-center">
+                            <div className="font-bold flex items-center gap-2"><Icons.BookOpen className="text-yellow-500"/> Exercice {levelIdx + 1} / {shuffledLevels.length}</div>
+                            <div className="flex gap-2">
+                                <button disabled={levelIdx===0} onClick={() => {setLevelIdx(l => l-1); window.scrollTo(0,0)}} className="p-2 bg-slate-800 rounded hover:bg-slate-700 disabled:opacity-50 transition-colors"><Icons.ChevronLeft/></button>
+                                {isLevelValidated ? (
+                                    <button onClick={() => { if(levelIdx < shuffledLevels.length -1) {setLevelIdx(l => l+1); window.scrollTo(0,0)} else {setIsCompleted(true);} }} className="px-4 py-2 bg-yellow-500 text-slate-900 rounded font-bold hover:bg-yellow-400 transition-colors flex items-center gap-1">Suivant <Icons.ChevronRight size={16}/></button>
+                                ) : (
+                                    <button onClick={handleValidateLevel} className="px-4 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 transition-colors flex items-center gap-1"><Icons.CheckCircle size={16}/> Valider</button>
+                                )}
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="container mx-auto p-4 flex flex-col lg:flex-row gap-8 print-block">
+                        <div className="lg:w-1/2 print:w-full print:mb-8">
+                            <h2 className="text-2xl font-bold mb-2">{currentLevel.title}</h2>
+                            <p className="mb-6 text-gray-600">{currentLevel.description}</p>
+                            {currentLevel.documents.map((doc, i) => <DocumentViewer key={i} doc={doc} />)}
+                        </div>
+                        <div className="lg:w-1/2 print:w-full">
+                            {isLevelValidated && currentScore && (
+                                <div className="bg-slate-800 text-white p-4 rounded-lg mb-4 flex justify-between items-center shadow-lg animate-in">
+                                    <span className="font-bold text-lg"><Icons.Trophy className="inline mr-2 text-yellow-400"/> Score Exercice :</span>
+                                    <span className="text-2xl font-bold text-yellow-400">{currentScore.obtained} / {currentScore.possible} points</span>
+                                </div>
+                            )}
+                            {currentLevel.requiredJournals.map((journal, idx) => (
+                                <JournalTable 
+                                    key={`${currentLevel.id}-${idx}`}
+                                    type={journal.type}
+                                    defaultDate={journal.defaultDate}
+                                    rows={allUserAnswers[currentLevel.id]?.[idx] || []}
+                                    setRows={rows => updateAnswers(idx, rows)}
+                                    validationState={{ isValidated: isLevelValidated }}
+                                    solutionRows={journal.solution}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="fixed bottom-0 w-full bg-white border-t p-3 print:hidden z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+                        <div className="container mx-auto flex justify-between items-center">
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                                <button onClick={() => setActiveModal('PLAN')} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded text-sm font-bold flex gap-2 text-slate-700 whitespace-nowrap"><Icons.List size={16}/> Plan</button>
+                                <button onClick={() => setActiveModal('TVA')} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded text-sm font-bold flex gap-2 text-slate-700 whitespace-nowrap"><Icons.FileText size={16}/> TVA</button>
+                                <button onClick={() => setActiveModal('CODES')} className="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded text-sm font-bold flex gap-2 text-slate-700 whitespace-nowrap"><Icons.Grid size={16}/> Popsy</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {activeModal === 'PLAN' && <PlanComptableModal onClose={() => setActiveModal(null)} />}
+                    {activeModal === 'TVA' && <DeclarationTvaModal onClose={() => setActiveModal(null)} />}
+                    {activeModal === 'CODES' && <CodesPopsyModal onClose={() => setActiveModal(null)} />}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
