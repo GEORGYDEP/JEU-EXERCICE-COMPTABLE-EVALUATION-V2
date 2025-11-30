@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jeu Comptable POPSY</title>
+    
+    <!-- 1. CHARGEMENT DES LIBRAIRIES EXTERNES (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React et ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel pour traduire le JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide-react@0.292.0/dist/lucide-react.min.js"></script>
+
+    <!-- 2. LIEN VERS LE CSS (Chemin relatif strict) -->
+    <link rel="stylesheet" href="./style.css" />
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
+  }
+}
+</script>
+</head>
+<body class="bg-gray-50 text-slate-800">
+    <div id="root"></div>
+
+    <!-- 3. LIEN VERS LE SCRIPT (Chemin relatif strict) -->
+    <!-- type="text/babel" est nécessaire pour que le code React fonctionne -->
+    <script type="text/babel" src="./script.js"></script>
+</body>
+</html>
